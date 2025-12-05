@@ -174,10 +174,6 @@ sudo python3 main.py
 ### Le dashboard web ne démarre pas
 Vérifiez que le port 8080 est libre ou modifiez-le dans `config/config.json`.
 
-## 📝 Licence
-
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
-
 ## 👨‍💻 Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
@@ -186,9 +182,9 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 
 Pour toute question ou problème :
 - 📖 Consultez la [documentation complète](Documentation/README.md)
-- 🐛 Ouvrez une [issue](https://github.com/votre-repo/issues)
 
 ---
 
 **Développé avec ❤️ pour sécuriser et optimiser votre système**
+
 
