@@ -1,0 +1,86 @@
+{
+    "system_name": "IT Monitor Portable",
+    "version": "1.0.0",
+    
+    "thresholds": {
+      "cpu": {
+        "warning": 80,
+        "critical": 95,
+        "description": "Seuil d'alerte CPU en pourcentage"
+      },
+      "memory": {
+        "warning": 85,
+        "critical": 95,
+        "description": "Seuil d'alerte mémoire en pourcentage"
+      },
+      "disk": {
+        "warning": 85,
+        "critical": 95,
+        "description": "Seuil d'alerte disque en pourcentage"
+      },
+      "network_latency": {
+        "warning": 150,
+        "critical": 300,
+        "description": "Latence réseau en millisecondes"
+      }
+    },
+    
+    "monitoring": {
+      "interval_seconds": 5,
+      "history_size": 100,
+      "auto_start": false,
+      "enable_logging": true,
+      "log_file": "monitor.log"
+    },
+    
+    "web_dashboard": {
+      "enabled": true,
+      "port": 8080,
+      "host": "0.0.0.0",
+      "auto_refresh_seconds": 5
+    },
+    
+    "notifications": {
+      "enabled": false,
+      "email": {
+        "enabled": false,
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "sender": "votre-email@gmail.com",
+        "recipients": ["admin@example.com"],
+        "password": ""
+      },
+      "webhook": {
+        "enabled": false,
+        "url": "",
+        "description": "URL webhook pour Slack/Discord/Teams"
+      }
+    },
+    
+    "reports": {
+      "auto_export": false,
+      "export_interval_hours": 24,
+      "export_format": "json",
+      "export_directory": "reports"
+    },
+    
+    "advanced": {
+      "process_monitoring": {
+        "enabled": true,
+        "top_processes_count": 10,
+        "blacklist": [],
+        "whitelist": []
+      },
+      "anomaly_detection": {
+        "enabled": true,
+        "algorithm": "threshold",
+        "sensitivity": "medium"
+      }
+    },
+    
+    "ui": {
+      "language": "fr",
+      "theme": "dark",
+      "show_graphs": true
+    }
+  }
