@@ -116,8 +116,78 @@ class ConfigManager:
         return self.save_config()
     
     def get_thresholds(self):
-        """Retourne tous les seuils d'alerte"""
-        return self.get('thresholds', {})
+        """
+        Retourne tous les seuils d'alerte au format plat
+        Convertit la structure imbriquée en format plat pour les détecteurs
+        """
+        thresholds_config = self.get('thresholds', {})
+        
+        # Si la structure est déjà plate (ancien format), la retourner telle quelle
+        if not thresholds_config:
+            return {}
+        
+        # Vérifier si c'est déjà au format plat
+        if 'cpu_critical' in thresholds_config or 'cpu' in thresholds_config and isinstance(thresholds_config.get('cpu'), (int, float)):
+            return thresholds_config
+        
+        # Convertir la structure imbriquée en format plat
+        flat_thresholds = {}
+        
+        # CPU
+        if 'cpu' in thresholds_config:
+            cpu_config = thresholds_config['cpu']
+            if isinstance(cpu_config, dict):
+                flat_thresholds['cpu'] = cpu_config.get('warning', 80)
+                flat_thresholds['cpu_critical'] = cpu_config.get('critical', 95)
+            else:
+                flat_thresholds['cpu'] = cpu_config
+                flat_thresholds['cpu_critical'] = 95
+        
+        # Memory
+        if 'memory' in thresholds_config:
+            mem_config = thresholds_config['memory']
+            if isinstance(mem_config, dict):
+                flat_thresholds['memory'] = mem_config.get('warning', 85)
+                flat_thresholds['memory_critical'] = mem_config.get('critical', 95)
+            else:
+                flat_thresholds['memory'] = mem_config
+                flat_thresholds['memory_critical'] = 95
+        
+        # Disk
+        if 'disk' in thresholds_config:
+            disk_config = thresholds_config['disk']
+            if isinstance(disk_config, dict):
+                flat_thresholds['disk'] = disk_config.get('warning', 90)
+                flat_thresholds['disk_critical'] = disk_config.get('critical', 95)
+            else:
+                flat_thresholds['disk'] = disk_config
+                flat_thresholds['disk_critical'] = 95
+        
+        # Valeurs par défaut pour les autres seuils
+        defaults = {
+            'swap': 50,
+            'swap_critical': 80,
+            'network_errors': 100,
+            'zombie_processes': 5,
+            'process_count': 500,
+            'cpu_spike': 90,
+            'memory_leak': 70,
+            'disk_io_high': 80,
+            'network_latency': 100,
+            'network_bandwidth': 80,
+            'process_cpu_high': 50,
+            'process_memory_high': 30,
+            'load_average': 2.0,
+            'temperature': 80,
+            'file_handles': 10000
+        }
+        
+        # Ajouter les valeurs par défaut manquantes
+        for key, default_value in defaults.items():
+            if key not in flat_thresholds:
+                flat_thresholds[key] = default_value
+        
+        return flat_thresholds
     
     def update_threshold(self, resource, level, value):
         """
