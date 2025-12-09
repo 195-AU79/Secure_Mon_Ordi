@@ -82,5 +82,7 @@
       "language": "fr",
       "theme": "dark",
       "show_graphs": true
-    }
+    },
+    
+    "servers": []
   }

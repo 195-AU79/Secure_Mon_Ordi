@@ -213,6 +213,10 @@ class ConfigManager:
         """Réinitialise la configuration aux valeurs par défaut"""
         self.config = self.DEFAULT_CONFIG.copy()
         return self.save_config()
+    
+    def save(self):
+        """Sauvegarde la configuration (alias pour save_config)"""
+        return self.save_config()
 
 
 # Exemple d'utilisation

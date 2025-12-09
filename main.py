@@ -12,6 +12,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.monitor import ITMonitor
+from core.server_manager import ServerManager
 from utils.anomaly_viewer import AnomalyViewer
 try:
     from utils.visual_dashboard import VisualDashboard
@@ -42,6 +43,139 @@ def print_system_info(monitor):
     print("="*60)
 
 
+def show_servers_menu(monitor):
+    """Menu de gestion des serveurs"""
+    server_manager = ServerManager(monitor.config)
+    
+    while True:
+        print("\n" + "="*60)
+        print("🖥️  GESTION DES SERVEURS")
+        print("="*60)
+        print("1. 📋 Voir tous les serveurs")
+        print("2. ➕ Ajouter un serveur")
+        print("3. ❌ Supprimer un serveur")
+        print("4. 🔍 Vérifier l'état des serveurs")
+        print("5. ↩️  Retour au menu principal")
+        print("="*60)
+        
+        choice = input("\nVotre choix (1-5): ").strip()
+        
+        if choice == '1':
+            servers = server_manager.list_servers()
+            if not servers:
+                print("\n📭 Aucun serveur configuré.")
+                print("Utilisez l'option 2 pour ajouter un serveur.")
+            else:
+                print("\n📋 LISTE DES SERVEURS")
+                print("-" * 60)
+                print(f"{'Nom':<20} {'Host':<25} {'Type':<10} {'Port':<8}")
+                print("-" * 60)
+                for server in servers:
+                    port_str = str(server.get('port', 'N/A'))
+                    print(f"{server['name']:<20} {server['host']:<25} {server.get('type', 'ping'):<10} {port_str:<8}")
+                    if server.get('description'):
+                        print(f"  └─ {server['description']}")
+        
+        elif choice == '2':
+            print("\n➕ AJOUTER UN SERVEUR")
+            print("-" * 60)
+            name = input("Nom du serveur: ").strip()
+            if not name:
+                print("❌ Le nom est requis")
+                continue
+            
+            host = input("Adresse IP ou hostname: ").strip()
+            if not host:
+                print("❌ L'adresse est requise")
+                continue
+            
+            print("\nType de vérification:")
+            print("  1. Ping (vérification de base)")
+            print("  2. Port (vérification de port spécifique)")
+            print("  3. HTTP (vérification HTTP)")
+            type_choice = input("Choix (1-3) [1]: ").strip() or "1"
+            
+            server_type_map = {'1': 'ping', '2': 'port', '3': 'http'}
+            server_type = server_type_map.get(type_choice, 'ping')
+            
+            port = None
+            if server_type in ['port', 'http']:
+                port_input = input("Port [80]: ").strip()
+                if port_input:
+                    try:
+                        port = int(port_input)
+                    except ValueError:
+                        print("❌ Port invalide, utilisation du port par défaut")
+                        port = 80 if server_type == 'http' else None
+                else:
+                    port = 80 if server_type == 'http' else None
+            
+            description = input("Description (optionnel): ").strip()
+            
+            if server_manager.add_server(name, host, port, server_type, description):
+                print(f"\n✅ Serveur '{name}' ajouté avec succès!")
+            else:
+                print(f"\n❌ Erreur: Un serveur avec le nom '{name}' existe déjà")
+        
+        elif choice == '3':
+            servers = server_manager.list_servers()
+            if not servers:
+                print("\n📭 Aucun serveur à supprimer.")
+                continue
+            
+            print("\n❌ SUPPRIMER UN SERVEUR")
+            print("-" * 60)
+            for i, server in enumerate(servers, 1):
+                print(f"{i}. {server['name']} ({server['host']})")
+            
+            try:
+                idx = int(input("\nNuméro du serveur à supprimer: ").strip()) - 1
+                if 0 <= idx < len(servers):
+                    server_name = servers[idx]['name']
+                    if server_manager.remove_server(server_name):
+                        print(f"\n✅ Serveur '{server_name}' supprimé avec succès!")
+                    else:
+                        print(f"\n❌ Erreur lors de la suppression")
+                else:
+                    print("\n❌ Numéro invalide")
+            except ValueError:
+                print("\n❌ Entrée invalide")
+        
+        elif choice == '4':
+            servers = server_manager.list_servers()
+            if not servers:
+                print("\n📭 Aucun serveur configuré.")
+                continue
+            
+            print("\n🔍 VÉRIFICATION DES SERVEURS EN COURS...")
+            print("-" * 60)
+            
+            results = server_manager.check_all_servers()
+            
+            print(f"\n{'Nom':<20} {'Host':<25} {'Statut':<12} {'Temps (ms)':<12}")
+            print("-" * 60)
+            
+            for result in results:
+                status_icon = "🟢" if result['online'] else "🔴"
+                status_text = result['status'].upper()
+                response_time = f"{result['response_time_ms']:.2f}" if result['response_time_ms'] else "N/A"
+                
+                print(f"{result['name']:<20} {result['host']:<25} {status_icon} {status_text:<10} {response_time:<12}")
+                
+                if result.get('error'):
+                    print(f"  └─ ⚠️  {result['error']}")
+            
+            print("-" * 60)
+            online_count = sum(1 for r in results if r['online'])
+            print(f"\n📊 Résumé: {online_count}/{len(results)} serveur(s) en ligne")
+        
+        elif choice == '5':
+            break
+        
+        else:
+            print("\n❌ Choix invalide")
+
+
 def interactive_menu(monitor):
     """Menu interactif principal"""
     viewer = AnomalyViewer()
@@ -62,10 +196,11 @@ def interactive_menu(monitor):
         print("10. 📁 Exporter rapport JSON")
         print("11. 📊 Statistiques d'historique")
         print("12. ⚙️  Configuration")
-        print("13. ❌ Quitter")
+        print("13. 🖥️  Voir mes serveurs")
+        print("14. ❌ Quitter")
         print("="*60)
         
-        choice = input("\nVotre choix (1-13): ").strip()
+        choice = input("\nVotre choix (1-14): ").strip()
         
         if choice == '1':
             print_system_info(monitor)
@@ -244,6 +379,9 @@ def interactive_menu(monitor):
                 print("✅ Configuration mise à jour")
         
         elif choice == '13':
+            show_servers_menu(monitor)
+        
+        elif choice == '14':
             print("\n👋 Au revoir!")
             if monitor.is_monitoring:
                 monitor.stop_monitoring()
